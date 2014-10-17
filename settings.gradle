@@ -1,0 +1,2 @@
+include ':app', ':Mingle'
+include ':lib'
