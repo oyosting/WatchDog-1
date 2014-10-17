@@ -19,23 +19,31 @@ import android.text.TextUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import in.mings.littledog.db.Device;
 import in.mings.mingle.utils.ByteArrayUtils;
 import in.mings.mingle.utils.Logger;
 
 /**
  * Created by wangming on 10/13/14.
  */
-public class BluetoothLeService extends Service {
+public class BluetoothLeService extends Service implements IBluetoothLe {
     private static final String TAG = BluetoothLeService.class.getSimpleName();
 
     public static final String SERIAL_PORT_UUID = "0000dfb1-0000-1000-8000-00805f9b34fb";
     public static final String COMMAND_UUID = "0000dfb2-0000-1000-8000-00805f9b34fb";
     public static final String MODEL_NUMBER_STRING_UUID = "00002a24-0000-1000-8000-00805f9b34fb";
 
+    public static final int STATE_CONNECTING = BluetoothProfile.STATE_CONNECTING;
+    public static final int STATE_CONNECTED = BluetoothProfile.STATE_CONNECTED;
+    public static final int STATE_DISCONNECTED = BluetoothProfile.STATE_DISCONNECTED;
+    public static final int STATE_DISCONNECTING = BluetoothProfile.STATE_DISCONNECTING;
+
+
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothGatt mBluetoothGatt;
     private boolean mLeScanning = false;
-    private boolean mLeConnecting = false;
+//    private boolean mLeConnecting = false;
+    private int mLeState = STATE_DISCONNECTED;
 //    private List<List<BluetoothGattCharacteristic>> mBluetoothGattCharacteristics = new ArrayList<List<BluetoothGattCharacteristic>>();
     private BluetoothGattCharacteristic mModelNumberCharacteristic, mSerialPortCharacteristic, mCommandCharacteristic;
 
@@ -77,9 +85,8 @@ public class BluetoothLeService extends Service {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
             Logger.i(TAG, "onConnectionStateChange... %d", newState);
-            mLeConnecting = BluetoothProfile.STATE_DISCONNECTED != newState;
+            mLeState = newState;
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                stopLeScan();
                 boolean result = gatt.discoverServices();
                 Logger.i(TAG, "onConnectionStateChange: Attempting to start service discovery :%s successfully!", result ? "" : " NOT");
             }
@@ -114,10 +121,10 @@ public class BluetoothLeService extends Service {
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             Logger.v(TAG, "device ==> %s with %s", device.getAddress(), device.getName());
             Logger.v(TAG, "rssi ==> %d with %s", rssi, ByteArrayUtils.toHexString(scanRecord));
-            if (!mLeConnecting && "mingsin".equalsIgnoreCase(device.getName())) {
-                connect(device.getAddress());
-                stopLeScan();
-            }
+
+            Intent intent = new Intent(ACTION_DEVICE_FOUND);
+            intent.putExtra(EXTRA_DEVICE, new Device(device, rssi, scanRecord));
+            sendBroadcast(intent);
         }
     };
 
@@ -141,7 +148,6 @@ public class BluetoothLeService extends Service {
 
     @Override
     public void unbindService(ServiceConnection conn) {
-        stopLeScan();
         Logger.d(TAG, "unbindService...");
         super.unbindService(conn);
     }
@@ -154,7 +160,7 @@ public class BluetoothLeService extends Service {
     }
 
     public void startLeScan() {
-        if (mBluetoothAdapter != null && !mLeScanning && !mLeConnecting) {
+        if (mBluetoothAdapter != null && !mLeScanning && mLeState == STATE_DISCONNECTED) {
             Logger.d(TAG, "Start le scanning...");
             mBluetoothAdapter.startLeScan(mLeScanCallback);
             mLeScanning = true;
@@ -185,7 +191,7 @@ public class BluetoothLeService extends Service {
         }
 
         synchronized (this) {
-            mLeConnecting = true;
+            mLeState = STATE_CONNECTING;
             mBluetoothGatt = device.connectGatt(getApplication(), false, mBluetoothGattCallback);
         }
     }
@@ -198,7 +204,7 @@ public class BluetoothLeService extends Service {
         if (mBluetoothGatt != null) {
             mBluetoothGatt.disconnect();
         }
-        mLeConnecting = false;
+        mLeState = STATE_DISCONNECTED;
     }
 
     /**

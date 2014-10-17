@@ -1,45 +1,38 @@
 package in.mings.littledog;
 
-import android.app.Activity;
-import android.app.Fragment;
-import android.app.Service;
-import android.bluetooth.BluetoothManager;
-import android.content.ComponentName;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
+import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.view.LayoutInflater;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 
-import in.mings.littledog.bt.BluetoothLeService;
+import java.util.ArrayList;
+
+import in.mings.littledog.bt.IBluetoothLe;
+import in.mings.littledog.db.Device;
 import in.mings.mingle.utils.Logger;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends BleActivity implements DeviceListFragment.OnDeviceItemClickListener {
     public static final String TAG = MainActivity.class.getSimpleName();
-    private BluetoothLeService bluetoothLeService;
-    private boolean mBound;
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            Logger.d(TAG, "Service connected");
-            mBound = true;
-            BluetoothLeService.BluetoothLeBinder binder = (BluetoothLeService.BluetoothLeBinder) service;
-            bluetoothLeService = binder.getService();
-            bluetoothLeService.startLeScan();
-        }
+    private DeviceListFragment deviceListFragment;
 
+    private ArrayList<Device> mItems = new ArrayList<Device>();
+    private BroadcastReceiver mBtDeviceReceiver = new BroadcastReceiver() {
         @Override
-        public void onServiceDisconnected(ComponentName name) {
-            Logger.d(TAG, "Service onServiceDisconnected");
-            bluetoothLeService = null;
-            mBound = false;
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (TextUtils.equals(action, IBluetoothLe.ACTION_DEVICE_FOUND)) {
+                Device device = intent.getParcelableExtra(IBluetoothLe.EXTRA_DEVICE);
+                Logger.d(TAG, "Device found : %s", device);
+                if (!mItems.contains(device) && deviceListFragment != null) {
+                    mItems.add(device);
+                    deviceListFragment.setItems(mItems);
+                }
+            }
         }
     };
 
@@ -47,30 +40,30 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (savedInstanceState == null) {
-            getFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
-                    .commit();
-        }
+        deviceListFragment = (DeviceListFragment) getFragmentManager().findFragmentById(R.id.fragment_device);
+        deviceListFragment.setOnDeviceItemClickListener(this);
     }
 
-    private void bindLeService() {
-        Intent intent = new Intent(this, BluetoothLeService.class);
-        bindService(intent, mServiceConnection, Service.BIND_AUTO_CREATE);
-    }
 
     protected void onStart() {
         super.onStart();
-        bindLeService();
+        registerReceiver();
+    }
+
+    private void registerReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(IBluetoothLe.ACTION_DEVICE_FOUND);
+        registerReceiver(mBtDeviceReceiver, filter);
+    }
+
+    private void unregisterReceiver() {
+        unregisterReceiver(mBtDeviceReceiver);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if (mBound) {
-            unbindService(mServiceConnection);
-            mBound = false;
-        }
+        unregisterReceiver();
     }
 
     @Override
@@ -92,21 +85,15 @@ public class MainActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
+    @Override
+    public void onDeviceItemClick(Device device, int pos) {
+//        if (bluetoothLeService != null) {
+//            bluetoothLeService.stopLeScan();
+//            bluetoothLeService.connect(device.address);
+//        }
 
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            return rootView;
-        }
+        Intent intent = new Intent(this, DeviceDetailFragment.DummyActivity.class);
+        intent.putExtra(IBluetoothLe.EXTRA_DEVICE, device);
+        startActivity(intent);
     }
-
-
 }
