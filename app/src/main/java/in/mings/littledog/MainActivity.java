@@ -95,5 +95,8 @@ public class MainActivity extends BleActivity implements DeviceListFragment.OnDe
         Intent intent = new Intent(this, DeviceDetailFragment.DummyActivity.class);
         intent.putExtra(IBluetoothLe.EXTRA_DEVICE, device);
         startActivity(intent);
+        if(bluetoothLeService != null) {
+            bluetoothLeService.stopLeScan();
+        }
     }
 }

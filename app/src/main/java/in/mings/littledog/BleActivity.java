@@ -1,11 +1,13 @@
 package in.mings.littledog;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.support.v7.app.ActionBarActivity;
 
 import in.mings.littledog.bt.BluetoothLeService;
 import in.mings.mingle.utils.Logger;
@@ -13,7 +15,7 @@ import in.mings.mingle.utils.Logger;
 /**
  * Created by wangming on 10/17/14.
  */
-public class BleActivity extends Activity {
+public class BleActivity extends ActionBarActivity {
     private static final String TAG = BleActivity.class.getSimpleName();
     private boolean mBound;
     protected BluetoothLeService bluetoothLeService;

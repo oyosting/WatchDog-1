@@ -38,13 +38,12 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
     public static final int STATE_DISCONNECTED = BluetoothProfile.STATE_DISCONNECTED;
     public static final int STATE_DISCONNECTING = BluetoothProfile.STATE_DISCONNECTING;
 
-
+    private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothGatt mBluetoothGatt;
     private boolean mLeScanning = false;
-//    private boolean mLeConnecting = false;
     private int mLeState = STATE_DISCONNECTED;
-//    private List<List<BluetoothGattCharacteristic>> mBluetoothGattCharacteristics = new ArrayList<List<BluetoothGattCharacteristic>>();
+    //    private List<List<BluetoothGattCharacteristic>> mBluetoothGattCharacteristics = new ArrayList<List<BluetoothGattCharacteristic>>();
     private BluetoothGattCharacteristic mModelNumberCharacteristic, mSerialPortCharacteristic, mCommandCharacteristic;
 
     private BluetoothGattCallback mBluetoothGattCallback = new BluetoothGattCallback() {
@@ -57,8 +56,8 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
                 loadBluetoothGattCharacteristics();
                 if (mSerialPortCharacteristic != null) {
                     mBluetoothGatt.setCharacteristicNotification(mSerialPortCharacteristic, true);
-                    mSerialPortCharacteristic.setValue("<RGBLED>0,0,0;");
-                    mBluetoothGatt.writeCharacteristic(mSerialPortCharacteristic);
+//                    mSerialPortCharacteristic.setValue("<RGBLED>0,0,0;");
+//                    mBluetoothGatt.writeCharacteristic(mSerialPortCharacteristic);
                 }
             }
         }
@@ -137,8 +136,8 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
     @Override
     public void onCreate() {
         super.onCreate();
-        BluetoothManager bluetoothManager = (BluetoothManager) getApplication().getSystemService(Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = bluetoothManager.getAdapter();
+        mBluetoothManager = (BluetoothManager) getApplication().getSystemService(Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = mBluetoothManager.getAdapter();
     }
 
     @Override
@@ -205,6 +204,13 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
             mBluetoothGatt.disconnect();
         }
         mLeState = STATE_DISCONNECTED;
+    }
+
+    public int getConnectedState(Device device) {
+        if (device == null) {
+            return STATE_DISCONNECTED;
+        }
+        return mBluetoothManager.getConnectionState(device.btDevice, BluetoothProfile.GATT);
     }
 
     /**

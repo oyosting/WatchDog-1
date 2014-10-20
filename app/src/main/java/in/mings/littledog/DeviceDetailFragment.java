@@ -1,7 +1,6 @@
 package in.mings.littledog;
 
 
-
 import android.app.Activity;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -9,11 +8,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 import in.mings.littledog.bt.BluetoothLeService;
 import in.mings.littledog.bt.IBluetoothLe;
 import in.mings.littledog.db.Device;
@@ -21,20 +22,36 @@ import in.mings.littledog.db.Device;
 
 /**
  * A simple {@link Fragment} subclass.
- *
  */
 public class DeviceDetailFragment extends Fragment {
     private Device mDevice;
     private BluetoothLeService mBluetoothService;
 
     @InjectView(R.id.tb_buzzer)
-    ToggleButton mTbBuzzer;
+    Switch mTbBuzzer;
     @InjectView(R.id.tb_color)
-    ToggleButton mTbColor;
+    Switch mTbColor;
     @InjectView(R.id.tv_address)
     TextView mTvAddress;
     @InjectView(R.id.tv_name)
     TextView mTvName;
+    @InjectView(R.id.tb_connection)
+    Switch mTbConnection;
+
+    void connect(boolean connect) {
+        BleActivity activity = (BleActivity) getActivity();
+        if (activity != null) {
+            BluetoothLeService leService = activity.getBluttoothLeService();
+            if (leService != null) {
+                if(connect) {
+                    leService.connect(mDevice.address);
+                } else {
+                    leService.disconnect();
+                }
+
+            }
+        }
+    }
 
 
     @Override
@@ -49,7 +66,7 @@ public class DeviceDetailFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        if(activity instanceof BleActivity) {
+        if (activity instanceof BleActivity) {
             mBluetoothService = ((BleActivity) activity).getBluttoothLeService();
         }
     }
@@ -57,7 +74,7 @@ public class DeviceDetailFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        mBluetoothService =null;
+        mBluetoothService = null;
     }
 
     @Override
@@ -71,12 +88,19 @@ public class DeviceDetailFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         mTvAddress.setText(mDevice.address);
         mTvName.setText(mDevice.name);
-        if(mBluetoothService != null) {
+        if (mBluetoothService != null) {
             mBluetoothService.connect(mDevice.address);
         }
         mTbBuzzer.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            }
+        });
+
+        mTbConnection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                connect(isChecked);
             }
         });
     }
