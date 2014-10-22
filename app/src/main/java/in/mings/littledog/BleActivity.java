@@ -3,13 +3,20 @@ package in.mings.littledog;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
+import android.text.TextUtils;
+
+import java.util.ArrayList;
 
 import in.mings.littledog.bt.BluetoothLeService;
+import in.mings.littledog.bt.IBluetoothLe;
+import in.mings.littledog.db.Device;
 import in.mings.mingle.utils.Logger;
 
 /**
@@ -36,6 +43,22 @@ public class BleActivity extends ActionBarActivity {
             mBound = false;
         }
     };
+
+    protected ArrayList<Device> mItems = new ArrayList<Device>();
+    private BroadcastReceiver mBtDeviceReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (TextUtils.equals(action, IBluetoothLe.ACTION_DEVICE_FOUND)) {
+                Device device = intent.getParcelableExtra(IBluetoothLe.EXTRA_DEVICE);
+                Logger.d(TAG, "Device found : %s", device);
+            } else if (TextUtils.equals(action, IBluetoothLe.ACTION_STATE_UPDATED)) {
+                String data = intent.getStringExtra(IBluetoothLe.EXTRA_DATA);
+                Logger.d(TAG, "got data : %s", data);
+            }
+        }
+    };
+
 
     public BluetoothLeService getBluttoothLeService() {
         return bluetoothLeService;

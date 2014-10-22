@@ -12,12 +12,16 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Handler;
 
 import in.mings.littledog.db.Device;
 import in.mings.mingle.utils.ByteArrayUtils;
@@ -43,10 +47,13 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
     private BluetoothGatt mBluetoothGatt;
     private boolean mLeScanning = false;
     private int mLeState = STATE_DISCONNECTED;
+    private Ringtone mRingtone;
     //    private List<List<BluetoothGattCharacteristic>> mBluetoothGattCharacteristics = new ArrayList<List<BluetoothGattCharacteristic>>();
     private BluetoothGattCharacteristic mModelNumberCharacteristic, mSerialPortCharacteristic, mCommandCharacteristic;
 
     private BluetoothGattCallback mBluetoothGattCallback = new BluetoothGattCallback() {
+        private StringBuilder sBuffer = new StringBuilder();
+
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             super.onServicesDiscovered(gatt, status);
@@ -65,7 +72,25 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
-            Logger.i(TAG, "onCharacteristicChanged... %s", characteristic.getStringValue(0));
+            String value = characteristic.getStringValue(0);
+            Logger.i(TAG, "onCharacteristicChanged... %s", value);
+            sBuffer.append(value);
+            if (!TextUtils.isEmpty(value) && value.endsWith(";")) {
+                Intent intent = new Intent(ACTION_STATE_UPDATED);
+                String data = sBuffer.toString();
+                intent.putExtra(EXTRA_DATA, data);
+                sendBroadcast(intent);
+                sBuffer.delete(0, data.length() - 1);
+
+
+                if (data.contains("ROCKER") && !data.contains("ROCKER>0")) {
+                    if (mRingtone != null && mRingtone.isPlaying()) {
+                        stopRingtone();
+                    } else {
+                        playRingtone();
+                    }
+                }
+            }
         }
 
         @Override
@@ -88,6 +113,8 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 boolean result = gatt.discoverServices();
                 Logger.i(TAG, "onConnectionStateChange: Attempting to start service discovery :%s successfully!", result ? "" : " NOT");
+            } else if (newState == STATE_DISCONNECTED) {
+                playRingtone();
             }
         }
 
@@ -97,6 +124,20 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
             Logger.i(TAG, "onReadRemoteRssi... %d", rssi);
         }
     };
+
+    public void playRingtone() {
+        if (mRingtone == null) {
+            Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+            mRingtone = RingtoneManager.getRingtone(getApplicationContext(), uri);
+        }
+        mRingtone.play();
+    }
+
+    public void stopRingtone() {
+        if (mRingtone != null) {
+            mRingtone.stop();
+        }
+    }
 
 
     private void loadBluetoothGattCharacteristics() {

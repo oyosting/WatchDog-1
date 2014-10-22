@@ -36,6 +36,7 @@ public class MainActivity extends BleActivity implements DeviceListFragment.OnDe
         }
     };
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

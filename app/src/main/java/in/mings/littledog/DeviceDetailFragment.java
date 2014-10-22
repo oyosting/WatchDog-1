@@ -94,6 +94,16 @@ public class DeviceDetailFragment extends Fragment {
         mTbBuzzer.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                BleActivity activity = (BleActivity) getActivity();
+                if (activity != null) {
+                    BluetoothLeService leService = activity.getBluttoothLeService();
+                    if (leService != null) {
+                        if(!isChecked) {
+                            leService.stopRingtone();
+                        }
+
+                    }
+                }
             }
         });
 
