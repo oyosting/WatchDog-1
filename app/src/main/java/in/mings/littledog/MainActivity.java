@@ -12,7 +12,7 @@ import android.view.MenuItem;
 import java.util.ArrayList;
 
 import in.mings.littledog.bt.IBluetoothLe;
-import in.mings.littledog.db.Device;
+import in.mings.littledog.bt.Device;
 import in.mings.mingle.utils.Logger;
 
 

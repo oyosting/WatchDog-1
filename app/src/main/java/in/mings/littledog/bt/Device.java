@@ -1,4 +1,4 @@
-package in.mings.littledog.db;
+package in.mings.littledog.bt;
 
 import android.bluetooth.BluetoothDevice;
 import android.os.Parcel;

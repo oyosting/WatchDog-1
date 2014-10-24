@@ -15,7 +15,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import in.mings.littledog.bt.BluetoothLeService;
 import in.mings.littledog.bt.IBluetoothLe;
-import in.mings.littledog.db.Device;
+import in.mings.littledog.bt.Device;
 
 
 /**

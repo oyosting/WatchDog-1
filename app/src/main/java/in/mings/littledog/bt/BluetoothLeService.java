@@ -15,17 +15,13 @@ import android.content.ServiceConnection;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.Binder;
-import android.os.IBinder;
 import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Handler;
 
-import in.mings.littledog.db.Device;
 import in.mings.mingle.utils.ByteArrayUtils;
 import in.mings.mingle.utils.Logger;
 

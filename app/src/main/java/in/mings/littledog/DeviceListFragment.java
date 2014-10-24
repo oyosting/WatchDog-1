@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import in.mings.littledog.db.Device;
+import in.mings.littledog.bt.Device;
 
 public class DeviceListFragment extends ListFragment {
 
