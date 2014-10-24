@@ -20,7 +20,9 @@ import android.os.IBinder;
 import android.text.TextUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Handler;
 
 import in.mings.littledog.db.Device;
@@ -30,26 +32,15 @@ import in.mings.mingle.utils.Logger;
 /**
  * Created by wangming on 10/13/14.
  */
-public class BluetoothLeService extends Service implements IBluetoothLe {
+public abstract class BluetoothLeService extends Service implements IBluetoothLe {
     private static final String TAG = BluetoothLeService.class.getSimpleName();
-
-    public static final String SERIAL_PORT_UUID = "0000dfb1-0000-1000-8000-00805f9b34fb";
-    public static final String COMMAND_UUID = "0000dfb2-0000-1000-8000-00805f9b34fb";
-    public static final String MODEL_NUMBER_STRING_UUID = "00002a24-0000-1000-8000-00805f9b34fb";
-
-    public static final int STATE_CONNECTING = BluetoothProfile.STATE_CONNECTING;
-    public static final int STATE_CONNECTED = BluetoothProfile.STATE_CONNECTED;
-    public static final int STATE_DISCONNECTED = BluetoothProfile.STATE_DISCONNECTED;
-    public static final int STATE_DISCONNECTING = BluetoothProfile.STATE_DISCONNECTING;
 
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
-    private BluetoothGatt mBluetoothGatt;
     private boolean mLeScanning = false;
     private int mLeState = STATE_DISCONNECTED;
-    private Ringtone mRingtone;
-    //    private List<List<BluetoothGattCharacteristic>> mBluetoothGattCharacteristics = new ArrayList<List<BluetoothGattCharacteristic>>();
-    private BluetoothGattCharacteristic mModelNumberCharacteristic, mSerialPortCharacteristic, mCommandCharacteristic;
+    protected Ringtone mRingtone;
+    private Map<String, BluetoothGatt> mBluetoothGattMap = new HashMap<String, BluetoothGatt>();
 
     private BluetoothGattCallback mBluetoothGattCallback = new BluetoothGattCallback() {
         private StringBuilder sBuffer = new StringBuilder();
@@ -57,15 +48,9 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             super.onServicesDiscovered(gatt, status);
-            mBluetoothGatt = gatt;
             Logger.i(TAG, "onServicesDiscovered... %d", status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                loadBluetoothGattCharacteristics();
-                if (mSerialPortCharacteristic != null) {
-                    mBluetoothGatt.setCharacteristicNotification(mSerialPortCharacteristic, true);
-//                    mSerialPortCharacteristic.setValue("<RGBLED>0,0,0;");
-//                    mBluetoothGatt.writeCharacteristic(mSerialPortCharacteristic);
-                }
+                mBluetoothGattMap.put(gatt.getDevice().getAddress(), gatt);
             }
         }
 
@@ -82,14 +67,7 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
                 sendBroadcast(intent);
                 sBuffer.delete(0, data.length() - 1);
 
-
-                if (data.contains("ROCKER") && !data.contains("ROCKER>0")) {
-                    if (mRingtone != null && mRingtone.isPlaying()) {
-                        stopRingtone();
-                    } else {
-                        playRingtone();
-                    }
-                }
+                onDataChanged(gatt,data);
             }
         }
 
@@ -125,6 +103,8 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
         }
     };
 
+    public abstract void onDataChanged(BluetoothGatt gatt, String value);
+
     public void playRingtone() {
         if (mRingtone == null) {
             Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
@@ -139,23 +119,6 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
         }
     }
 
-
-    private void loadBluetoothGattCharacteristics() {
-        List<BluetoothGattService> list = getSupportedGattServices();
-        for (BluetoothGattService service : list) {
-            for (BluetoothGattCharacteristic bgc : service.getCharacteristics()) {
-                if (TextUtils.equals(bgc.getUuid().toString(), SERIAL_PORT_UUID)) {
-                    mSerialPortCharacteristic = bgc;
-                } else if (TextUtils.equals(bgc.getUuid().toString(), COMMAND_UUID)) {
-                    mCommandCharacteristic = bgc;
-                } else if (TextUtils.equals(bgc.getUuid().toString(), MODEL_NUMBER_STRING_UUID)) {
-                    mModelNumberCharacteristic = bgc;
-                }
-            }
-        }
-
-    }
-
     private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
@@ -168,22 +131,11 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
         }
     };
 
-    public class BluetoothLeBinder extends Binder {
-        public BluetoothLeService getService() {
-            return BluetoothLeService.this;
-        }
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
         mBluetoothManager = (BluetoothManager) getApplication().getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = mBluetoothManager.getAdapter();
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return new BluetoothLeBinder();
     }
 
     @Override
@@ -195,7 +147,7 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
     @Override
     public void onDestroy() {
         Logger.d(TAG, "onDestroy...");
-        disconnect();
+//        disconnect(); //TODO disconnect all GATT connections
         super.onDestroy();
     }
 
@@ -232,7 +184,7 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
 
         synchronized (this) {
             mLeState = STATE_CONNECTING;
-            mBluetoothGatt = device.connectGatt(getApplication(), false, mBluetoothGattCallback);
+            device.connectGatt(getApplication(), false, mBluetoothGattCallback);
         }
     }
 
@@ -240,11 +192,11 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
      * Disconnect the existing connection of BLE device. The result is reported through the
      * {@link BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
      */
-    public void disconnect() {
-        if (mBluetoothGatt != null) {
-            mBluetoothGatt.disconnect();
+    public void disconnect(String address) {
+        BluetoothGatt gatt = mBluetoothGattMap.get(address);
+        if (gatt != null) {
+            gatt.disconnect();
         }
-        mLeState = STATE_DISCONNECTED;
     }
 
     public int getConnectedState(Device device) {
@@ -257,16 +209,17 @@ public class BluetoothLeService extends Service implements IBluetoothLe {
     /**
      * Call this method to ensure resources are released properly, after using the given BLE device.
      */
-    public void colse() {
-        if (mBluetoothGatt != null) {
-            mBluetoothGatt.close();
-            mBluetoothGatt = null;
+    public void colse(String address) {
+        BluetoothGatt gatt = mBluetoothGattMap.get(address);
+        if (gatt != null) {
+            gatt.close();
         }
     }
 
-    public List<BluetoothGattService> getSupportedGattServices() {
-        if (mBluetoothGatt != null) {
-            return mBluetoothGatt.getServices();
+    public List<BluetoothGattService> getSupportedGattServices(String address) {
+        BluetoothGatt gatt = mBluetoothGattMap.get(address);
+        if (gatt != null) {
+            return gatt.getServices();
         }
         return new ArrayList<BluetoothGattService>();
     }

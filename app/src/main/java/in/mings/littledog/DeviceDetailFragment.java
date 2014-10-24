@@ -10,11 +10,9 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.ToggleButton;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import butterknife.OnClick;
 import in.mings.littledog.bt.BluetoothLeService;
 import in.mings.littledog.bt.IBluetoothLe;
 import in.mings.littledog.db.Device;
@@ -24,6 +22,10 @@ import in.mings.littledog.db.Device;
  * A simple {@link Fragment} subclass.
  */
 public class DeviceDetailFragment extends Fragment {
+    public static final String SERIAL_PORT_UUID = "0000dfb1-0000-1000-8000-00805f9b34fb";
+    public static final String COMMAND_UUID = "0000dfb2-0000-1000-8000-00805f9b34fb";
+    public static final String MODEL_NUMBER_STRING_UUID = "00002a24-0000-1000-8000-00805f9b34fb";
+
     private Device mDevice;
     private BluetoothLeService mBluetoothService;
 
@@ -41,14 +43,13 @@ public class DeviceDetailFragment extends Fragment {
     void connect(boolean connect) {
         BleActivity activity = (BleActivity) getActivity();
         if (activity != null) {
-            BluetoothLeService leService = activity.getBluttoothLeService();
+            BluetoothLeService leService = activity.getBluetoothLeService();
             if (leService != null) {
                 if(connect) {
                     leService.connect(mDevice.address);
                 } else {
-                    leService.disconnect();
+                    leService.disconnect(mDevice.address);
                 }
-
             }
         }
     }
@@ -67,7 +68,7 @@ public class DeviceDetailFragment extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         if (activity instanceof BleActivity) {
-            mBluetoothService = ((BleActivity) activity).getBluttoothLeService();
+            mBluetoothService = ((BleActivity) activity).getBluetoothLeService();
         }
     }
 
@@ -96,7 +97,7 @@ public class DeviceDetailFragment extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 BleActivity activity = (BleActivity) getActivity();
                 if (activity != null) {
-                    BluetoothLeService leService = activity.getBluttoothLeService();
+                    BluetoothLeService leService = activity.getBluetoothLeService();
                     if (leService != null) {
                         if(!isChecked) {
                             leService.stopRingtone();

@@ -27,7 +27,7 @@
         </activity>
         <activity android:name=".DeviceDetailFragment$DummyActivity"/>
         <service
-            android:name=".bt.BluetoothLeService"
+            android:name=".BleService"
             android:exported="false" />
     </application>
 
