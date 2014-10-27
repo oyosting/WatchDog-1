@@ -13,13 +13,16 @@ import java.util.ArrayList;
 
 import in.mings.littledog.bt.IBluetoothLe;
 import in.mings.littledog.bt.Device;
+import in.mings.littledog.util.BluetoothUtils;
 import in.mings.mingle.utils.Logger;
 
 
 public class MainActivity extends BleActivity implements DeviceListFragment.OnDeviceItemClickListener {
     public static final String TAG = MainActivity.class.getSimpleName();
     private DeviceListFragment deviceListFragment;
+    private boolean mScaning = true;
 
+    private BluetoothUtils mBluetoothUtils;
     private ArrayList<Device> mItems = new ArrayList<Device>();
     private BroadcastReceiver mBtDeviceReceiver = new BroadcastReceiver() {
         @Override
@@ -43,8 +46,15 @@ public class MainActivity extends BleActivity implements DeviceListFragment.OnDe
         setContentView(R.layout.activity_main);
         deviceListFragment = (DeviceListFragment) getFragmentManager().findFragmentById(R.id.fragment_device);
         deviceListFragment.setOnDeviceItemClickListener(this);
+        mBluetoothUtils = new BluetoothUtils(this);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mBluetoothUtils.askUserToEnableBluetoothIfNeeded();
+
+    }
 
     protected void onStart() {
         super.onStart();
@@ -68,36 +78,31 @@ public class MainActivity extends BleActivity implements DeviceListFragment.OnDe
     }
 
     @Override
+    public void onBleServiceConnected(BleService service) {
+        invalidateOptionsMenu();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+        if(mScaning) {
+            menu.findItem(R.id.menu_refresh).setActionView(R.layout.actionbar_progress_indeterminate);
+        } else {
+            menu.findItem(R.id.menu_refresh).setActionView(null);
+        }
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     public void onDeviceItemClick(Device device, int pos) {
-//        if (bluetoothLeService != null) {
-//            bluetoothLeService.stopLeScan();
-//            bluetoothLeService.connect(device.address);
-//        }
-
         Intent intent = new Intent(this, DeviceDetailFragment.DummyActivity.class);
         intent.putExtra(IBluetoothLe.EXTRA_DEVICE, device);
         startActivity(intent);
-        if(bluetoothLeService != null) {
+        if (bluetoothLeService != null) {
             bluetoothLeService.stopLeScan();
+            mScaning = false;
+            invalidateOptionsMenu();
         }
     }
 }

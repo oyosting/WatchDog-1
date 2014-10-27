@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import in.mings.mingle.utils.ByteArrayUtils;
 import in.mings.mingle.utils.Logger;
@@ -63,7 +64,7 @@ public abstract class BluetoothLeService extends Service implements IBluetoothLe
                 sendBroadcast(intent);
                 sBuffer.delete(0, data.length() - 1);
 
-                onDataChanged(gatt,data);
+                onDataChanged(gatt, data);
             }
         }
 
@@ -218,5 +219,15 @@ public abstract class BluetoothLeService extends Service implements IBluetoothLe
             return gatt.getServices();
         }
         return new ArrayList<BluetoothGattService>();
+    }
+
+    public BluetoothGattCharacteristic getGattCharacteristic(String address, UUID uuid) {
+        for (BluetoothGattService service : getSupportedGattServices(address)) {
+            BluetoothGattCharacteristic bgc = service.getCharacteristic(uuid);
+            if (bgc != null) {
+                return bgc;
+            }
+        }
+        return null;
     }
 }

@@ -45,10 +45,10 @@ public class DeviceDetailFragment extends Fragment {
         if (activity != null) {
             BluetoothLeService leService = activity.getBluetoothLeService();
             if (leService != null) {
-                if(connect) {
+                if (connect) {
                     leService.connect(mDevice.address);
                 } else {
-                    leService.disconnect(mDevice.address);
+                    leService.colse(mDevice.address);
                 }
             }
         }
@@ -99,7 +99,7 @@ public class DeviceDetailFragment extends Fragment {
                 if (activity != null) {
                     BluetoothLeService leService = activity.getBluetoothLeService();
                     if (leService != null) {
-                        if(!isChecked) {
+                        if (!isChecked) {
                             leService.stopRingtone();
                         }
 
@@ -116,11 +116,24 @@ public class DeviceDetailFragment extends Fragment {
         });
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        boolean checked = mBluetoothService != null && mDevice != null && mBluetoothService.getConnectedState(mDevice) == IBluetoothLe.STATE_CONNECTED;
+        mTbConnection.setChecked(checked);
+    }
+
+
     public static class DummyActivity extends BleActivity {
         @Override
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_device_detail);
+        }
+
+        @Override
+        public void onBleServiceConnected(BleService service) {
+
         }
     }
 
