@@ -2,17 +2,19 @@ package in.mings.littledog;
 
 import android.app.ListFragment;
 import android.content.Context;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-
+import butterknife.ButterKnife;
+import butterknife.InjectView;
 import in.mings.littledog.bt.Device;
+import in.mings.littledog.db.DeviceStore;
 
 public class DeviceListFragment extends ListFragment {
 
@@ -28,17 +30,14 @@ public class DeviceListFragment extends ListFragment {
 
     private DeviceAdapter mAdapter;
 
-    public void setItems(ArrayList<Device> items) {
-        if (mAdapter != null) {
-            mAdapter.setDevice(items);
-        }
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mAdapter = new DeviceAdapter(getActivity());
+        Cursor c = DeviceStore.newInstance(getActivity()).queryAll();
+        mAdapter = new DeviceAdapter(getActivity(), c);
         setListAdapter(mAdapter);
+
     }
 
     @Override
@@ -49,41 +48,38 @@ public class DeviceListFragment extends ListFragment {
         }
     }
 
-    public class DeviceAdapter extends BaseAdapter {
-        private Context mContext;
-        private ArrayList<Device> mDevices = new ArrayList<Device>();
 
-        DeviceAdapter(Context context) {
-            mContext = context;
-        }
+    public class DeviceAdapter extends CursorAdapter {
 
-        public void setDevice(ArrayList<Device> devices) {
-            mDevices = devices;
-            notifyDataSetChanged();
+        public DeviceAdapter(Context context, Cursor c) {
+            super(context, c, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
         }
 
         @Override
-        public int getCount() {
-            return mDevices.size();
+        public View newView(Context context, Cursor cursor, ViewGroup parent) {
+            View view = LayoutInflater.from(context).inflate(R.layout.item_device, parent, false);
+            return view;
         }
 
         @Override
-        public Object getItem(int position) {
-            return mDevices.get(position);
+        public void bindView(View view, Context context, Cursor cursor) {
+            ViewHolder holder = (ViewHolder) view.getTag();
+            if (holder == null) {
+                holder = new ViewHolder(view);
+            }
+            holder.alias.setText(cursor.getString(1));
+            holder.state.setText(cursor.getString(2));
         }
 
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
+        class ViewHolder {
+            @InjectView(R.id.tv_alias)
+            TextView alias;
+            @InjectView(R.id.tv_state)
+            TextView state;
 
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View v = LayoutInflater.from(mContext).inflate(android.R.layout.simple_list_item_1, parent, false);
-            TextView tv = (TextView) v.findViewById(android.R.id.text1);
-            Device device = mDevices.get(position);
-            tv.setText(device.address + " : " + device.name);
-            return v;
+            public ViewHolder(View view) {
+                ButterKnife.inject(this, view);
+            }
         }
     }
 }

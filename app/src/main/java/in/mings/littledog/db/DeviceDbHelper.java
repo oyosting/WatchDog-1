@@ -12,11 +12,13 @@ public class DeviceDbHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "little_dog.db";
 
     private static final String CREATE_TABLE = "CREATE TABLE " + DeviceColumns.TABLE_NAME + " ("
-            + DeviceColumns._ID + " INTEGER PRIMARY KEY,"
+            + DeviceColumns._ID + " INTEGER  PRIMARY KEY AUTOINCREMENT,"
             + DeviceColumns.COLUMN_NAME_NAME + " TEXT,"
             + DeviceColumns.COLUMN_NAME_ALIAS + " TEXT,"
             + DeviceColumns.COLUMN_NAME_ADDRESS + " TEXT,"
             + DeviceColumns.COLUMN_NAME_DESC + " TEXT,"
+            + DeviceColumns.COLUMN_NAME_DISCONNECT_ON_PURPOSE + " INTEGER,"
+            + DeviceColumns.COLUMN_NAME_STATE + " INTEGER,"
             + DeviceColumns.COLUMN_NAME_CREATED_DATE + " INTEGER,"
             + DeviceColumns.COLUMN_NAME_UPDATED_DATE + " INTEGER"
             + ")";
@@ -37,4 +39,5 @@ public class DeviceDbHelper extends SQLiteOpenHelper {
             onCreate(db);
         }
     }
+
 }

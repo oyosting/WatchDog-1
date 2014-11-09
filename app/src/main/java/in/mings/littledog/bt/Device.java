@@ -12,6 +12,7 @@ public class Device implements Parcelable {
     public String name; // device name
     public String alias; // device alias
     public String address; // device mac address
+    public int state = 0;
     public String desc;
     public BluetoothDevice btDevice;
     public int rssi;
@@ -25,6 +26,7 @@ public class Device implements Parcelable {
             device.name = source.readString();
             device.alias = source.readString();
             device.address = source.readString();
+            device.state = source.readInt();
             device.desc = source.readString();
             device.btDevice = source.readParcelable(BluetoothDevice.class.getClassLoader());
             device.rssi = source.readInt();
@@ -39,7 +41,7 @@ public class Device implements Parcelable {
         }
     };
 
-    private Device() {
+    public Device() {
     }
 
     public Device(BluetoothDevice device, int rssi, byte[] scanRecord) {
@@ -63,6 +65,7 @@ public class Device implements Parcelable {
         dest.writeString(name);
         dest.writeString(alias);
         dest.writeString(address);
+        dest.writeInt(state);
         dest.writeString(desc);
         dest.writeParcelable(btDevice, flags);
         dest.writeInt(rssi);

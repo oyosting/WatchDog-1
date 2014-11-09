@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Menu;
-import android.view.MenuItem;
 
 import java.util.ArrayList;
 
@@ -33,7 +32,6 @@ public class MainActivity extends BleActivity implements DeviceListFragment.OnDe
                 Logger.d(TAG, "Device found : %s", device);
                 if (!mItems.contains(device) && deviceListFragment != null) {
                     mItems.add(device);
-                    deviceListFragment.setItems(mItems);
                 }
             }
         }

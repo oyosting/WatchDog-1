@@ -167,14 +167,14 @@ public abstract class BluetoothLeService extends Service implements IBluetoothLe
     /**
      * Connects to the GATT server hosted on the BLE device by given address.
      *
-     * @param address The address of the destination device.
+     * @param dev The destination device.
      */
-    public void connect(final String address) {
-        if (mBluetoothAdapter == null || TextUtils.isEmpty(address)) {
+    public void connect(final Device dev) {
+        if (mBluetoothAdapter == null || dev == null || TextUtils.isEmpty(dev.address)) {
             return;
         }
 
-        final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+        final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(dev.address);
         if (device == null) {
             return;
         }
@@ -206,8 +206,9 @@ public abstract class BluetoothLeService extends Service implements IBluetoothLe
     /**
      * Call this method to ensure resources are released properly, after using the given BLE device.
      */
-    public void colse(String address) {
-        BluetoothGatt gatt = mBluetoothGattMap.get(address);
+    public void colse(Device device) {
+        //TODO update db to set device disconnected
+        BluetoothGatt gatt = mBluetoothGattMap.get(device.address);
         if (gatt != null) {
             gatt.close();
         }

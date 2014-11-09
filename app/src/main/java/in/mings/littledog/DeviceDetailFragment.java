@@ -46,9 +46,9 @@ public class DeviceDetailFragment extends Fragment {
             BluetoothLeService leService = activity.getBluetoothLeService();
             if (leService != null) {
                 if (connect) {
-                    leService.connect(mDevice.address);
+                    leService.connect(mDevice);
                 } else {
-                    leService.colse(mDevice.address);
+                    leService.colse(mDevice);
                 }
             }
         }
@@ -90,7 +90,7 @@ public class DeviceDetailFragment extends Fragment {
         mTvAddress.setText(mDevice.address);
         mTvName.setText(mDevice.name);
         if (mBluetoothService != null) {
-            mBluetoothService.connect(mDevice.address);
+            mBluetoothService.connect(mDevice);
         }
         mTbBuzzer.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
