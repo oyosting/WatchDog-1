@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical"
+    tools:context=".DeviceList">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/mainlist_avatar_nomatch"
+        android:src="@drawable/mypet_small"
+
+        android:id="@+id/imageView"
+        android:layout_weight="0"
+        android:layout_margin="8dp" />
+    <LinearLayout
+        android:layout_width="@dimen/activity_vertical_margin"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="left"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/textView"
+            android:textAppearance="@android:style/TextAppearance.Holo.Medium"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/textView2"
+            android:textAppearance="@android:style/TextAppearance.Holo.Small"
+            android:textColor="#78ffedfd" />
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/signal_a"
+        android:layout_weight="0"
+        android:layout_marginRight="10dp" />
+
+</LinearLayout>

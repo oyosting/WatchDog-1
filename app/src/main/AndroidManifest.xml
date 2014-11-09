@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="in.mings.littledog">
-
+    package="in.mings.littledog" >
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -14,8 +13,10 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
-        <activity
+        android:theme="@style/AppTheme" >
+
+        <!--
+            <activity
             android:name=".MainActivity"
             android:configChanges="orientation"
             android:label="@string/app_name">
@@ -25,10 +26,27 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".DeviceDetailFragment$DummyActivity"/>
+        -->
+        <activity android:name=".DeviceDetailFragment$DummyActivity" />
+        <activity
+            android:name=".DeviceListActivity"
+            android:label="@string/title_activity_device_list" >
+
+        </activity>
+
         <service
             android:name=".BleService"
             android:exported="false" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

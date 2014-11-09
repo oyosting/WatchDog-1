@@ -8,5 +8,7 @@
     <string name="helloworld">Hello World!</string>
     <string name="menu_scan">Scan</string>
     <string name="menu_refresh">Refresh</string>
+    <string name="title_activity_device_list">DeviceList</string>
+
 
 </resources>
